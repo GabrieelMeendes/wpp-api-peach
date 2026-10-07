@@ -45,7 +45,7 @@ POSTGRES_USERS_DB=postgresql://user:pass@host:5432/evogo_users?sslmode=disable
 | Variável | Padrão | Valores | Descrição |
 |----------|--------|---------|-----------|
 | `WADEBUG` | `INFO` | `DEBUG`, `INFO`, `WARN`, `ERROR` | Nível de log |
-| `LOGTYPE` | `console` | `console`, `file` | Destino de saída |
+| `LOG_TYPE` | `console` | `console`, `json` | Formato do log no stdout/stderr. `json` emite uma linha JSON por log (`time`, `level`, `module`, `message`), lida como log estruturado pelo Railway. Em qualquer formato, erros vão para stderr e os demais níveis para stdout |
 | `LOG_DIRECTORY` | `/app/logs` | - | Diretório de arquivos de log |
 | `LOG_MAX_SIZE` | `100` | - | Tamanho máximo por arquivo (MB) |
 | `LOG_MAX_BACKUPS` | `5` | - | Arquivos de backup a manter |
