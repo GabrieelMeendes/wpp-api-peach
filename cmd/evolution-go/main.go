@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -154,7 +153,7 @@ func setupRouter(db *gorm.DB, authDB *sql.DB, sqliteDB *sql.DB, config *config.C
 			config.MinioUseSSL,
 		)
 		if err != nil {
-			log.Fatal(err)
+			logger.LogFatal("%v", err)
 		}
 	}
 
@@ -265,7 +264,7 @@ func migrate(db *gorm.DB) {
 	err := db.AutoMigrate(&instance_model.Instance{}, &message_model.Message{}, &label_model.Label{})
 
 	if err != nil {
-		log.Fatal(err)
+		logger.LogFatal("%v", err)
 	}
 }
 
@@ -334,9 +333,13 @@ func main() {
 	if *devMode {
 		err := godotenv.Load(".env")
 		if err != nil {
-			log.Fatal(err)
+			logger.LogFatal("%v", err)
 		}
 	}
+
+	// Roteia logs por nível (ERROR → stderr, demais → stdout) para que
+	// plataformas como o Railway não classifiquem tudo como erro.
+	logger_wrapper.SetupConsole(os.Getenv("LOG_TYPE") == "json")
 
 	cfg := config.Load()
 
@@ -346,13 +349,13 @@ func main() {
 
 	db, err := cfg.CreateUsersDB()
 	if err != nil {
-		log.Fatal(err)
+		logger.LogFatal("%v", err)
 	}
 
 	// Inicializar PostgreSQL AUTH
 	authDB, err := initPostgresAuthDB(cfg)
 	if err != nil {
-		log.Fatal(err)
+		logger.LogFatal("%v", err)
 	}
 	if authDB != nil {
 		defer authDB.Close()
@@ -361,7 +364,7 @@ func main() {
 	// Manter inicialização do SQLite
 	sqliteDB, exPath, err := initAuthDB(cfg)
 	if err != nil {
-		log.Fatal(err)
+		logger.LogFatal("%v", err)
 	}
 	if sqliteDB != nil {
 		defer sqliteDB.Close()
@@ -372,7 +375,7 @@ func main() {
 	// Initialize core DB + license runtime
 	core.SetDB(db)
 	if err := core.MigrateDB(); err != nil {
-		log.Fatal("Failed to migrate runtime_configs: ", err)
+		logger.LogFatal("Failed to migrate runtime_configs: %v", err)
 	}
 	tier := "evolution-go"
 	runtimeCtx := core.InitializeRuntime(tier, version, cfg.GlobalApiKey)
@@ -424,7 +427,7 @@ func main() {
 	go func() {
 		logger.LogInfo("Iniciando servidor na porta %s", os.Getenv("SERVER_PORT"))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server error: %v", err)
+			logger.LogFatal("server error: %v", err)
 		}
 	}()
 

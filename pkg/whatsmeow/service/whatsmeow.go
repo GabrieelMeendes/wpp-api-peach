@@ -343,7 +343,7 @@ func sharedContainer(w whatsmeowService) (*sqlstore.Container, error) {
 
 	var dbLog waLog.Logger
 	if w.config.WaDebug != "" {
-		dbLog = waLog.Stdout("Database", w.config.WaDebug, true)
+		dbLog = logger_wrapper.NewWALogger("Database", w.config.WaDebug)
 	}
 
 	var container *sqlstore.Container
@@ -452,7 +452,7 @@ func (w whatsmeowService) StartClient(cd *ClientData) {
 	if minLevel == "" {
 		minLevel = "INFO" // Nível mínimo para garantir que logs INFO apareçam
 	}
-	clientLog := waLog.Stdout("Client", minLevel, true)
+	clientLog := logger_wrapper.NewWALogger("Client", minLevel)
 	client := whatsmeow.NewClient(deviceStore, clientLog)
 
 	w.clientPointer[cd.Instance.Id] = client
